@@ -39,7 +39,23 @@ using ::vendor::syberia::smartcharge::V1_0::ISmartCharge;
 
 
 struct SmartCharge : public ISmartCharge {
-    Return<bool> setChargingEnabled(bool enable) override;
+  public:
+    SmartCharge();
+
+    Return<bool> setSmartChargeEnabled(bool enable) override;
+    Return<bool> updateCapacity(int32_t capacity) override;
+    Return<int32_t> getResumeLevel() override;
+    Return<int32_t> getSuspendLevel() override;
+    Return<bool> updateBatteryLevels(int32_t suspendLevel, int32_t resumeLevel) override;
+
+  private:
+    void suspendIfNeeded();
+    Return<bool> getChargingEnable();
+    std::atomic<bool> mSuspended;
+    std::atomic<bool> mEnabled;
+    std::int32_t mResumeLevel;
+    std::int32_t mSuspendLevel;
+    std::int32_t mCapacity;
 };
 
 }  // namespace implementation
