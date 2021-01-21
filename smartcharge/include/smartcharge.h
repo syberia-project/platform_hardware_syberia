@@ -19,4 +19,7 @@
 
 #define CHARGE_CONTROL_PATH "/sys/class/power_supply/battery/charging_enabled"
 
+#define SUSPEND_LEVEL 85
+#define RESUME_LEVEL 80
+
 #endif // COMMON_SMARTCHARGE_H

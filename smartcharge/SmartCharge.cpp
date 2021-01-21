@@ -49,8 +49,78 @@ static void set(const std::string& path, const T& value) {
     }
 }
 
-Return<bool> SmartCharge::setChargingEnabled(bool enable) {
-    set(CHARGE_CONTROL_PATH, enable ? 1 : 0);
+template <typename T>
+static T get(const std::string& path, const T& def) {
+    std::ifstream file(path);
+
+    if (!file) {
+        PLOG(ERROR) << "Failed to open: " << path;
+        return def;
+    }
+
+    T result;
+
+    file >> result;
+
+    if (file.fail()) {
+        PLOG(ERROR) << "Failed to read: " << path;
+        return def;
+    } else {
+        LOG(DEBUG) << "read: " << path << " value: " << result;
+        return result;
+    }
+}
+
+SmartCharge::SmartCharge()
+    : mSuspended(false),
+      mEnabled(false),
+      mResumeLevel(RESUME_LEVEL),
+      mSuspendLevel(SUSPEND_LEVEL),
+      mCapacity(0) {
+}
+
+Return<bool> SmartCharge::setSmartChargeEnabled(bool enable) {
+    mEnabled = enable;
+    return true;
+}
+
+Return<bool> SmartCharge::getChargingEnable() {
+    return get(CHARGE_CONTROL_PATH, 0) > 0;
+}
+
+void SmartCharge::suspendIfNeeded() {
+    if ((!getChargingEnable() && (mCapacity <= mResumeLevel)) ||
+            (!getChargingEnable() && !mEnabled)) {
+                set(CHARGE_CONTROL_PATH, 1);
+        LOG(INFO) << "Charging enabled";
+    }
+
+    if (mEnabled && getChargingEnable() && (mCapacity >= mSuspendLevel)) {
+        LOG(INFO) << "Charging disabled";
+                set(CHARGE_CONTROL_PATH, 0);
+    }
+}
+
+Return<bool> SmartCharge::updateCapacity(int32_t capacity) {
+    mCapacity = capacity;
+    suspendIfNeeded();
+    return true;
+}
+
+Return<int32_t> SmartCharge::getResumeLevel() {
+    LOG(INFO) << "ResumeLevel: " << mResumeLevel;
+    return mResumeLevel;
+}
+
+Return<int32_t> SmartCharge::getSuspendLevel() {
+    LOG(INFO) << "SuspendLevel: " << mSuspendLevel;
+    return mSuspendLevel;
+}
+
+Return<bool> SmartCharge::updateBatteryLevels(int32_t suspendLevel, int32_t resumeLevel) {
+    mSuspendLevel = suspendLevel;
+    mResumeLevel = resumeLevel;
+    suspendIfNeeded();
     return true;
 }
 
