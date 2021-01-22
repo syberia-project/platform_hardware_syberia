@@ -94,14 +94,14 @@ Return<bool> SmartCharge::getChargingEnable() {
 
 void SmartCharge::suspendIfNeeded() {
     if ((!getChargingEnable() && (mCapacity <= mResumeLevel)) ||
-            (!getChargingEnable() && !mEnabled)) {
-                set(CHARGE_CONTROL_PATH, 1);
+            !mEnabled || (mEnabled && (mSuspendLevel > mCapacity))) {
+        set(CHARGE_CONTROL_PATH, 1);
         LOG(INFO) << "Charging enabled";
     }
 
     if (mEnabled && getChargingEnable() && (mCapacity >= mSuspendLevel)) {
         LOG(INFO) << "Charging disabled";
-                set(CHARGE_CONTROL_PATH, 0);
+        set(CHARGE_CONTROL_PATH, 0);
     }
 }
 
