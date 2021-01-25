@@ -89,19 +89,31 @@ Return<bool> SmartCharge::setSmartChargeEnabled(bool enable) {
 }
 
 Return<bool> SmartCharge::getChargingEnable() {
+#ifdef SMARTCHARGE_REVERSE_LOGIC
+    return get(CHARGE_CONTROL_PATH, 0) == 0;
+#else
     return get(CHARGE_CONTROL_PATH, 0) > 0;
+#endif
 }
 
 void SmartCharge::suspendIfNeeded() {
     if ((!getChargingEnable() && (mCapacity <= mResumeLevel)) ||
             !mEnabled || (mEnabled && (mSuspendLevel > mCapacity))) {
+#ifdef SMARTCHARGE_REVERSE_LOGIC
+        set(CHARGE_CONTROL_PATH, 0);
+#else
         set(CHARGE_CONTROL_PATH, 1);
+#endif
         LOG(INFO) << "Charging enabled";
     }
 
     if (mEnabled && getChargingEnable() && (mCapacity >= mSuspendLevel)) {
         LOG(INFO) << "Charging disabled";
+#ifdef SMARTCHARGE_REVERSE_LOGIC
+        set(CHARGE_CONTROL_PATH, 1);
+#else
         set(CHARGE_CONTROL_PATH, 0);
+#endif
     }
 }
 

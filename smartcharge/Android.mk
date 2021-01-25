@@ -32,6 +32,14 @@ LOCAL_SHARED_LIBRARIES := \
     libutils \
     vendor.syberia.smartcharge@1.0
 
+ifneq ($(TARGET_SMARTCHARGE_CONTROL_NODE),)
+  LOCAL_CFLAGS += -DSMARTCHARGE_CONTROL_NODE=\"$(TARGET_SMARTCHARGE_CONTROL_NODE)\"
+endif
+
+ifeq ($(TARGET_SMARTCHARGE_REVERSE_LOGIC),true)
+  LOCAL_CFLAGS += -DSMARTCHARGE_REVERSE_LOGIC
+endif
+
 LOCAL_MODULE := vendor.syberia.smartcharge@1.0-service
 LOCAL_INIT_RC := vendor.syberia.smartcharge@1.0-service.rc
 LOCAL_MODULE_RELATIVE_PATH := hw
