@@ -17,7 +17,15 @@
 #ifndef COMMON_SMARTCHARGE_H
 #define COMMON_SMARTCHARGE_H
 
+#ifndef SMARTCHARGE_CONTROL_NODE
 #define CHARGE_CONTROL_PATH "/sys/class/power_supply/battery/charging_enabled"
+#else
+#define CHARGE_CONTROL_PATH SMARTCHARGE_CONTROL_NODE
+#endif
+
+#ifdef SMARTCHARGE_REVERSE_LOGIC
+#define SMARTCHARGE_REVERSE_LOGIC
+#endif
 
 #define SUSPEND_LEVEL 85
 #define RESUME_LEVEL 80
