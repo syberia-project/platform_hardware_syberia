@@ -51,7 +51,6 @@ struct SmartCharge : public ISmartCharge {
   private:
     void suspendIfNeeded();
     Return<bool> getChargingEnable();
-    std::atomic<bool> mSuspended;
     std::atomic<bool> mEnabled;
     std::int32_t mResumeLevel;
     std::int32_t mSuspendLevel;

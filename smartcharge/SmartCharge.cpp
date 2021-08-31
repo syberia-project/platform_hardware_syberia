@@ -72,11 +72,18 @@ static T get(const std::string& path, const T& def) {
 }
 
 SmartCharge::SmartCharge()
-    : mSuspended(false),
-      mEnabled(false),
+    : mEnabled(false),
       mResumeLevel(RESUME_LEVEL),
       mSuspendLevel(SUSPEND_LEVEL),
       mCapacity(0) {
+}
+
+static void setCharge(bool enabled) {
+#ifdef SMARTCHARGE_REVERSE_LOGIC
+        set(CHARGE_CONTROL_PATH, (enabled) ? 0 : 1);
+#else
+        set(CHARGE_CONTROL_PATH, (enabled) ? 1 : 0);
+#endif
 }
 
 Return<bool> SmartCharge::setSmartChargeEnabled(bool enable) {
@@ -97,25 +104,17 @@ Return<bool> SmartCharge::getChargingEnable() {
 }
 
 void SmartCharge::suspendIfNeeded() {
-    if ((!getChargingEnable() && (mCapacity <= mResumeLevel)) ||
-            !mEnabled || (mEnabled && (mSuspendLevel > mCapacity))) {
-#ifdef SMARTCHARGE_REVERSE_LOGIC
-        set(CHARGE_CONTROL_PATH, 0);
-#else
-        set(CHARGE_CONTROL_PATH, 1);
-#endif
+    if ((!getChargingEnable() && (mCapacity <= mResumeLevel)) || !mEnabled) {
+        setCharge(true);
         LOG(INFO) << "Charging enabled";
     }
 
     if (mEnabled && getChargingEnable() && (mCapacity >= mSuspendLevel)) {
         LOG(INFO) << "Charging disabled";
-#ifdef SMARTCHARGE_REVERSE_LOGIC
-        set(CHARGE_CONTROL_PATH, 1);
-#else
-        set(CHARGE_CONTROL_PATH, 0);
-#endif
+        setCharge(false);
     }
 }
+
 
 Return<bool> SmartCharge::updateCapacity(int32_t capacity) {
     if (capacity != mCapacity) {
@@ -135,6 +134,10 @@ Return<int32_t> SmartCharge::getSuspendLevel() {
 }
 
 Return<bool> SmartCharge::updateBatteryLevels(int32_t suspendLevel, int32_t resumeLevel) {
+
+    if (suspendLevel > mSuspendLevel)
+        setCharge(true);
+
     mSuspendLevel = suspendLevel;
     mResumeLevel = resumeLevel;
     LOG(INFO) << "Suspend level: " << mSuspendLevel;
